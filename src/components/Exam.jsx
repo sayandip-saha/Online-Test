@@ -1,185 +1,247 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import questions from "../data/questions";
 import Palette from "./Palette";
 
-var INACTIVITY_LIMIT = 5 * 60 * 1000;
+var INACTIVITY_LIMIT = 5 * 60;
+var INITIAL_TIME = INACTIVITY_LIMIT;
 
-function Exam ({ candidate, onExit }) {
+function Exam({ candidate, onExit }) {
   var [currentIndex, setCurrentIndex] = useState(0);
-  var [answers, setAnswers] = useState({});
-  var [questionStates, setQuestionStates] = useState(
-    questions.map(function () {
-      return "not-visited";
-    })
+  var [answers, setAnswers] = useState(Array(questions.length).fill(null));
+  var [visitedQuestions, setVisitedQuestions] = useState(
+    Array(questions.length).fill(false),
   );
-  var [examStatus, setExamStatus] = useState("active");
-  var [timeLeft, setTimeLeft] = useState(INACTIVITY_LIMIT);
+  var [examStatus, setExamStatus] = useState("running");
+  var [timeLeft, setTimeLeft] = useState(INITIAL_TIME);
   var [isFullScreen, setIsFullScreen] = useState(false);
+  var [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
 
   var currentQuestion = questions[currentIndex];
 
-  var answeredCount = useMemo(function () {
-    return Object.keys(answers).length;
-  }, [answers]);
-
+  /*
+   * Enter fullscreen when the exam starts.
+   */
   useEffect(function () {
-    setQuestionStates(function (currentStates) {
-      var updatedStates = currentStates.slice();
-
-      if (updatedStates[currentIndex] === "not-visited") {
-        updatedStates[currentIndex] = "not-answered";
-      }
-
-      return updatedStates;
-    });
-  }, [currentIndex]);
-
-  useEffect(function () {
-    if (examStatus !== "active") {
-      return;
-    }
-
-    var intervalId = window.setInterval(function () {
-      setTimeLeft(function (currentTime) {
-        var nextTime = currentTime - 1000;
-
-        if (nextTime <= 0) {
-          window.clearInterval(intervalId);
+    function enterFullScreen() {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(function () {
           setExamStatus("cancelled");
-          return 0;
+        });
+      }
+    }
+
+    enterFullScreen();
+  }, []);
+
+  /*
+   * Track fullscreen status.
+   */
+  useEffect(
+    function () {
+      function handleFullScreenChange() {
+        var fullScreenActive = Boolean(document.fullscreenElement);
+
+        setIsFullScreen(fullScreenActive);
+
+        if (!fullScreenActive && examStatus === "running") {
+          setExamStatus("cancelled");
         }
+      }
 
-        return nextTime;
+      document.addEventListener("fullscreenchange", handleFullScreenChange);
+
+      return function () {
+        document.removeEventListener(
+          "fullscreenchange",
+          handleFullScreenChange,
+        );
+      };
+    },
+    [examStatus],
+  );
+
+  /*
+   * Detect browser tab switching.
+   */
+  useEffect(
+    function () {
+      function handleVisibilityChange() {
+        if (document.visibilityState === "hidden" && examStatus === "running") {
+          setExamStatus("cancelled");
+        }
+      }
+
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+
+      return function () {
+        document.removeEventListener(
+          "visibilitychange",
+          handleVisibilityChange,
+        );
+      };
+    },
+    [examStatus],
+  );
+
+  /*
+   * Mark the current question as visited.
+   */
+  useEffect(
+    function () {
+      if (examStatus !== "running") {
+        return;
+      }
+
+      setVisitedQuestions(function (previous) {
+        var updated = [...previous];
+
+        updated[currentIndex] = true;
+
+        return updated;
       });
-    }, 1000);
+    },
+    [currentIndex, examStatus],
+  );
 
-    return function () {
-      window.clearInterval(intervalId);
-    };
-  }, [examStatus]);
+  /*
+   * Reset inactivity timer whenever the candidate interacts
+   * with the page.
+   */
+  useEffect(
+    function () {
+      if (examStatus !== "running") {
+        return;
+      }
 
-  useEffect(function () {
-    if (examStatus !== "active") {
+      function resetInactivityTimer() {
+        setTimeLeft(INACTIVITY_LIMIT);
+      }
+
+      window.addEventListener("mousemove", resetInactivityTimer);
+      window.addEventListener("mousedown", resetInactivityTimer);
+      window.addEventListener("keydown", resetInactivityTimer);
+      window.addEventListener("touchstart", resetInactivityTimer);
+
+      return function () {
+        window.removeEventListener("mousemove", resetInactivityTimer);
+        window.removeEventListener("mousedown", resetInactivityTimer);
+        window.removeEventListener("keydown", resetInactivityTimer);
+        window.removeEventListener("touchstart", resetInactivityTimer);
+      };
+    },
+    [examStatus],
+  );
+
+  /*
+   * Countdown for inactivity.
+   */
+  useEffect(
+    function () {
+      if (examStatus !== "running") {
+        return;
+      }
+
+      var timer = setInterval(function () {
+        setTimeLeft(function (previous) {
+          if (previous <= 1) {
+            clearInterval(timer);
+            setExamStatus("cancelled");
+
+            return 0;
+          }
+
+          return previous - 1;
+        });
+      }, 1000);
+
+      return function () {
+        clearInterval(timer);
+      };
+    },
+    [examStatus],
+  );
+
+  function formatTime(seconds) {
+    var minutes = Math.floor(seconds / 60);
+    var remainingSeconds = seconds % 60;
+
+    return `${String(minutes).padStart(2, "0")}:${String(
+      remainingSeconds,
+    ).padStart(2, "0")}`;
+  }
+
+  function handleAnswerChange(optionIndex) {
+    if (examStatus !== "running") {
       return;
     }
 
-    var resetInactivityTimer = function () {
-      setTimeLeft(INACTIVITY_LIMIT);
-    };
+    setAnswers(function (previous) {
+      var updated = [...previous];
 
-    window.addEventListener("mousemove", resetInactivityTimer);
-    window.addEventListener("keydown", resetInactivityTimer);
-    window.addEventListener("click", resetInactivityTimer);
+      updated[currentIndex] = optionIndex;
 
-    return function () {
-      window.removeEventListener("mousemove", resetInactivityTimer);
-      window.removeEventListener("keydown", resetInactivityTimer);
-      window.removeEventListener("click", resetInactivityTimer);
-    };
-  }, [examStatus]);
-
-  useEffect(function () {
-    function handleVisibilityChange () {
-      if (document.hidden && examStatus === "active") {
-        setExamStatus("cancelled");
-      }
-    }
-
-    function handleFullScreenChange () {
-      var currentlyFullScreen = document.fullscreenElement !== null;
-      setIsFullScreen(currentlyFullScreen);
-
-      if (!currentlyFullScreen && examStatus === "active") {
-        setExamStatus("cancelled");
-      }
-    }
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    document.addEventListener("fullscreenchange", handleFullScreenChange);
-
-    return function () {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      document.removeEventListener("fullscreenchange", handleFullScreenChange);
-    };
-  }, [examStatus]);
-
-  useEffect(function () {
-    if (examStatus === "active" && !isFullScreen) {
-      enterFullScreen();
-    }
-  }, [examStatus, isFullScreen]);
-
-  function enterFullScreen () {
-    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(function () {
-        setExamStatus("cancelled");
-      });
-    }
-  }
-
-  function handleAnswerChange (answerIndex) {
-    setAnswers(function (currentAnswers) {
-      return {
-        ...currentAnswers,
-        [currentQuestion.id]: answerIndex
-      };
+      return updated;
     });
   }
 
-  function saveAndNext () {
-    if (answers[currentQuestion.id] === undefined) {
-      setQuestionStates(function (currentStates) {
-        var updatedStates = currentStates.slice();
-        updatedStates[currentIndex] = "not-answered";
-        return updatedStates;
-      });
-    } else {
-      setQuestionStates(function (currentStates) {
-        var updatedStates = currentStates.slice();
-        updatedStates[currentIndex] = "answered";
-        return updatedStates;
-      });
-    }
-
+  function handleNext() {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
+
       return;
     }
 
     setExamStatus("submitted");
   }
 
-  function selectQuestion (index) {
+  function handlePrevious() {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  }
+
+  function handlePaletteSelect(index) {
     setCurrentIndex(index);
   }
 
-  function formatTime (milliseconds) {
-    var totalSeconds = Math.floor(milliseconds / 1000);
-    var minutes = Math.floor(totalSeconds / 60);
-    var seconds = totalSeconds % 60;
-
-    return String(minutes).padStart(2, "0") + ":" + String(seconds).padStart(2, "0");
-  }
-
-  function handleExit () {
-    if (document.fullscreenElement && document.exitFullscreen) {
-      document.exitFullscreen().catch(function () {});
+  function handleExitExam() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(function () {
+        return;
+      });
     }
 
     onExit();
   }
 
+  function handleSubmit () {
+  setShowSubmitConfirmation(false);
+  setIsSubmitted(true);
+}
+
+  /*
+   * Exam cancellation page.
+   */
   if (examStatus === "cancelled") {
     return (
       <main className="status-page">
         <section className="status-card danger">
-          <span className="status-icon">!</span>
+          <div className="status-icon">!</div>
+
           <h1>Exam Cancelled</h1>
+
           <p>
-            The examination was cancelled because of inactivity, a tab change,
-            or exiting full-screen mode.
+            Your exam has been cancelled because the exam security rules were
+            violated.
           </p>
-          <button className="primary-button" type="button" onClick={handleExit}>
+
+          {!isFullScreen && <p>Full screen mode was exited.</p>}
+
+          <button
+            className="primary-button"
+            type="button"
+            onClick={handleExitExam}
+          >
             Exit Exam
           </button>
         </section>
@@ -187,16 +249,26 @@ function Exam ({ candidate, onExit }) {
     );
   }
 
+  /*
+   * Exam submitted page.
+   */
   if (examStatus === "submitted") {
     return (
       <main className="status-page">
         <section className="status-card success">
-          <span className="status-icon">✓</span>
-          <h1>Exam Submitted</h1>
-          <p>
-            {candidate.name}, you answered {answeredCount} of {questions.length} questions.
-          </p>
-          <button className="primary-button" type="button" onClick={handleExit}>
+          <div className="status-icon">✓</div>
+
+          <h1>Test Submitted</h1>
+
+          <p>Thank you, {candidate.name}.</p>
+
+          <p>Your test has been submitted successfully.</p>
+
+          <button
+            className="primary-button"
+            type="button"
+            onClick={handleExitExam}
+          >
             Finish
           </button>
         </section>
@@ -208,72 +280,137 @@ function Exam ({ candidate, onExit }) {
     <main className="exam-page">
       <header className="exam-header">
         <div>
-          <p className="eyebrow">SECURE ONLINE TEST</p>
-          <h1>Candidate Examination</h1>
-          <p>{candidate.name} · {candidate.email}</p>
+          <p className="eyebrow">ONLINE TEST</p>
+
+          <h1>Welcome, {candidate.name}</h1>
+
+          <p>
+            Question {currentIndex + 1} of {questions.length}
+          </p>
         </div>
 
         <div className="timer">
-          <span>Inactivity timer</span>
+          <span>Inactivity Time</span>
+
           <strong>{formatTime(timeLeft)}</strong>
         </div>
       </header>
 
       <div className="exam-layout">
-        <section className="question-card">
-          <div className="question-meta">
-            <span>Question {currentIndex + 1} of {questions.length}</span>
-            <span>{answeredCount} answered</span>
-          </div>
+        <section className="question-panel">
+          <div className="question-card">
+            <div className="question-meta">
+              <span>Question {currentIndex + 1}</span>
 
-          <h2>{currentQuestion.question}</h2>
+              <span>{currentQuestion.options.length} Options</span>
+            </div>
 
-          <div className="options">
-            {currentQuestion.options.map(function (option, index) {
-              var checked = answers[currentQuestion.id] === index;
+            <h2>{currentQuestion.question}</h2>
 
-              return (
-                <label className={"option " + (checked ? "selected" : "")} key={option}>
-                  <input
-                    type="radio"
-                    name={"question-" + currentQuestion.id}
-                    checked={checked}
-                    onChange={function () {
-                      handleAnswerChange(index);
-                    }}
-                  />
-                  <span className="option-number">{String.fromCharCode(65 + index)}</span>
-                  <span>{option}</span>
-                </label>
-              );
-            })}
-          </div>
+            <div className="options">
+              {currentQuestion.options.map(function (option, index) {
+                var isSelected = answers[currentIndex] === index;
 
-          <div className="question-actions">
-            <button
-              className="secondary-button"
-              type="button"
-              disabled={currentIndex === 0}
-              onClick={function () {
-                setCurrentIndex(currentIndex - 1);
-              }}
-            >
-              Previous
-            </button>
+                return (
+                  <label
+                    className={isSelected ? "option selected" : "option"}
+                    key={option}
+                  >
+                    <input
+                      type="radio"
+                      name={`question-${currentQuestion.id}`}
+                      checked={isSelected}
+                      onChange={function () {
+                        handleAnswerChange(index);
+                      }}
+                    />
 
-            <button className="primary-button" type="button" onClick={saveAndNext}>
-              {currentIndex === questions.length - 1 ? "Save & Submit" : "Save & Next"}
-            </button>
+                    <span className="option-number">
+                      {String.fromCharCode(65 + index)}
+                    </span>
+
+                    <span>{option}</span>
+                  </label>
+                );
+              })}
+            </div>
+
+            <div className="question-actions">
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={handlePrevious}
+                disabled={currentIndex === 0}
+              >
+                Previous
+              </button>
+
+              {currentIndex === questions.length - 1 ? (
+                <button
+                  className="primary-button"
+                  type="button"
+                  onClick={function () {
+                    setShowSubmitConfirmation(true);
+                  }}
+                >
+                  Submit Exam
+                </button>
+              ) : (
+                <button
+                  className="primary-button"
+                  type="button"
+                  onClick={handleNext}
+                >
+                  Save &amp; Next
+                </button>
+              )}
+            </div>
           </div>
         </section>
 
         <Palette
           questions={questions}
-          questionStates={questionStates}
           currentIndex={currentIndex}
-          onSelect={selectQuestion}
+          answers={answers}
+          visitedQuestions={visitedQuestions}
+          onSelectQuestion={handlePaletteSelect}
         />
       </div>
+
+      {showSubmitConfirmation && (
+        <div className="confirmation-overlay">
+          <div className="confirmation-card">
+            <div className="status-icon">?</div>
+
+            <h2>Submit Exam?</h2>
+
+            <p>
+              Are you sure you want to submit the exam? You cannot change your
+              answers after submission.
+            </p>
+
+            <div className="confirmation-actions">
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={function () {
+                  setShowSubmitConfirmation(false);
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="primary-button"
+                type="button"
+                onClick={handleSubmit}
+              >
+                Yes, Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

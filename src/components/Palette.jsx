@@ -1,40 +1,40 @@
-function Palette ({ questions, questionStates, currentIndex, onSelect }) {
-  function getStatusClass (index) {
-    var status = questionStates[index];
-
+function Palette({
+  questions,
+  currentIndex,
+  answers,
+  visitedQuestions,
+  onSelectQuestion,
+}) {
+  function getQuestionStatus(index) {
     if (index === currentIndex) {
-      return "palette-button current";
+      return "current";
     }
 
-    if (status === "answered") {
-      return "palette-button answered";
+    if (answers[index] !== null && answers[index] !== undefined) {
+      return "answered";
     }
 
-    if (status === "not-answered") {
-      return "palette-button not-answered";
+    if (visitedQuestions[index]) {
+      return "not-answered";
     }
 
-    return "palette-button not-visited";
+    return "not-visited";
   }
 
   return (
     <aside className="palette-panel">
-      <div className="palette-header">
-        <h2>Questions</h2>
-        <span>{questions.length}</span>
-      </div>
+      <h2>Question Palette</h2>
 
       <div className="palette-grid">
         {questions.map(function (question, index) {
           return (
             <button
-              className={getStatusClass(index)}
               key={question.id}
               type="button"
+              className={`palette-button ${getQuestionStatus(index)}`}
               onClick={function () {
-                onSelect(index);
+                onSelectQuestion(index);
               }}
-              aria-label={"Go to question " + (index + 1)}
             >
               {index + 1}
             </button>
@@ -42,10 +42,21 @@ function Palette ({ questions, questionStates, currentIndex, onSelect }) {
         })}
       </div>
 
-      <div className="legend">
-        <div><span className="legend-dot answered"></span> Answered</div>
-        <div><span className="legend-dot not-visited"></span> Not visited</div>
-        <div><span className="legend-dot not-answered"></span> Not answered</div>
+      <div className="palette-legend">
+        <div className="legend-item">
+          <span className="legend-box answered"></span>
+          <span>Answered</span>
+        </div>
+
+        <div className="legend-item">
+          <span className="legend-box not-visited"></span>
+          <span>Not Visited</span>
+        </div>
+
+        <div className="legend-item">
+          <span className="legend-box not-answered"></span>
+          <span>Not Answered</span>
+        </div>
       </div>
     </aside>
   );

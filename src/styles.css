@@ -3,7 +3,14 @@
 }
 
 :root {
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   color: #172033;
   background: #f5f7fb;
   font-synthesis: none;
@@ -25,8 +32,17 @@ button {
   cursor: pointer;
 }
 
-.candidate-page,
-.status-page {
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+/* =========================
+   Candidate Registration
+========================= */
+
+.candidate-page {
   min-height: 100vh;
   display: grid;
   place-items: center;
@@ -34,8 +50,7 @@ button {
   background: linear-gradient(135deg, #eef2ff, #f8fafc 55%, #e0f2fe);
 }
 
-.candidate-card,
-.status-card {
+.candidate-card {
   width: min(100%, 560px);
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -63,12 +78,6 @@ button {
   letter-spacing: 0.14em;
 }
 
-h1,
-h2,
-p {
-  margin-top: 0;
-}
-
 .candidate-card h1 {
   margin-bottom: 8px;
   font-size: 38px;
@@ -78,6 +87,10 @@ p {
   color: #64748b;
   margin-bottom: 30px;
 }
+
+/* =========================
+   Form
+========================= */
 
 .form-group {
   margin-bottom: 20px;
@@ -103,11 +116,16 @@ p {
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
-.field-error {
+.field-error,
+.error-message {
   margin: 7px 0 0;
   color: #dc2626;
   font-size: 13px;
 }
+
+/* =========================
+   Exam Rules
+========================= */
 
 .exam-rules {
   margin: 24px 0;
@@ -126,6 +144,10 @@ p {
 .exam-rules li {
   margin: 7px 0;
 }
+
+/* =========================
+   Buttons
+========================= */
 
 .primary-button,
 .secondary-button {
@@ -155,6 +177,92 @@ p {
   cursor: not-allowed;
   opacity: 0.45;
 }
+
+/* =========================
+   Instructions Page
+========================= */
+
+.instructions-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #eef2ff, #f8fafc 55%, #e0f2fe);
+}
+
+.instructions-card {
+  width: 100%;
+  max-width: 800px;
+  padding: 40px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 24px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
+}
+
+.instructions-header {
+  margin-bottom: 30px;
+}
+
+.instructions-header h1 {
+  margin: 8px 0;
+  font-size: 36px;
+}
+
+.instructions-header p {
+  color: #64748b;
+}
+
+.instructions-section {
+  margin-bottom: 28px;
+}
+
+.instructions-section h2 {
+  margin-bottom: 12px;
+  font-size: 20px;
+}
+
+.instructions-section ul {
+  margin: 0;
+  padding-left: 24px;
+}
+
+.instructions-section li {
+  margin-bottom: 10px;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.warning-box {
+  padding: 18px;
+  margin-top: 25px;
+  border-radius: 12px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.warning-box strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #c2410c;
+}
+
+.warning-box p {
+  margin: 0;
+  color: #9a3412;
+  line-height: 1.5;
+}
+
+.instructions-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 30px;
+}
+
+/* =========================
+   Exam Page
+========================= */
 
 .exam-page {
   min-height: 100vh;
@@ -202,6 +310,10 @@ p {
   font-size: 24px;
 }
 
+/* =========================
+   Exam Layout
+========================= */
+
 .exam-layout {
   max-width: 1280px;
   margin: 0 auto;
@@ -233,6 +345,11 @@ p {
   font-weight: 700;
 }
 
+.question-number {
+  color: #64748b;
+  font-weight: 700;
+}
+
 .question-card h2 {
   max-width: 820px;
   margin: 55px 0 32px;
@@ -240,7 +357,12 @@ p {
   line-height: 1.4;
 }
 
-.options {
+/* =========================
+   Options
+========================= */
+
+.options,
+.options-list {
   display: grid;
   gap: 13px;
 }
@@ -253,6 +375,7 @@ p {
   border: 1px solid #dbe3ee;
   border-radius: 14px;
   transition: 0.2s ease;
+  cursor: pointer;
 }
 
 .option:hover,
@@ -262,7 +385,8 @@ p {
 }
 
 .option input {
-  display: none;
+  width: 18px;
+  height: 18px;
 }
 
 .option-number {
@@ -280,6 +404,10 @@ p {
   color: #ffffff;
 }
 
+/* =========================
+   Question Actions
+========================= */
+
 .question-actions {
   margin-top: auto;
   padding-top: 28px;
@@ -287,6 +415,10 @@ p {
   justify-content: space-between;
   gap: 12px;
 }
+
+/* =========================
+   Question Palette
+========================= */
 
 .palette-panel {
   padding: 20px;
@@ -312,6 +444,12 @@ p {
   font-size: 13px;
 }
 
+.palette-panel > h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 20px;
+}
+
 .palette-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -331,22 +469,29 @@ p {
 }
 
 .palette-button.answered,
-.legend-dot.answered {
+.legend-dot.answered,
+.legend-box.answered {
   background: #22c55e;
   color: #ffffff;
 }
 
 .palette-button.not-visited,
-.legend-dot.not-visited {
+.legend-dot.not-visited,
+.legend-box.not-visited {
   background: #cbd5e1;
   color: #334155;
 }
 
 .palette-button.not-answered,
-.legend-dot.not-answered {
+.legend-dot.not-answered,
+.legend-box.not-answered {
   background: #ef4444;
   color: #ffffff;
 }
+
+/* =========================
+   Palette Legend
+========================= */
 
 .legend {
   display: grid;
@@ -369,8 +514,49 @@ p {
   border-radius: 50%;
 }
 
-.status-card {
+.palette-legend {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+  font-size: 12px;
+}
+
+.legend-box {
+  width: 11px;
+  height: 11px;
+  display: inline-block;
+  border-radius: 50%;
+}
+
+/* =========================
+   Result / Status Page
+========================= */
+
+.status-page,
+.exam-result-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px 20px;
+  background: linear-gradient(135deg, #eef2ff, #f8fafc 55%, #e0f2fe);
+}
+
+.status-card,
+.result-card {
+  width: min(100%, 560px);
+  padding: 42px;
   text-align: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 24px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
 }
 
 .status-card.danger {
@@ -393,15 +579,21 @@ p {
   font-weight: 900;
 }
 
-.status-card h1 {
+.status-card h1,
+.result-card h1 {
   font-size: 32px;
 }
 
-.status-card p {
+.status-card p,
+.result-card p {
   color: #64748b;
   line-height: 1.6;
   margin-bottom: 26px;
 }
+
+/* =========================
+   Responsive
+========================= */
 
 @media (max-width: 850px) {
   .exam-page {
@@ -429,12 +621,21 @@ p {
 
 @media (max-width: 560px) {
   .candidate-card,
-  .status-card {
+  .status-card,
+  .result-card {
     padding: 26px 20px;
   }
 
   .candidate-card h1 {
     font-size: 31px;
+  }
+
+  .instructions-card {
+    padding: 26px 20px;
+  }
+
+  .instructions-header h1 {
+    font-size: 30px;
   }
 
   .question-card {
@@ -453,4 +654,106 @@ p {
   .question-actions button {
     width: 100%;
   }
+
+  .exam-header h1 {
+    font-size: 25px;
+  }
 }
+
+.status-card.danger {
+  border-top: 5px solid #ef4444;
+}
+
+.status-card.success {
+  border-top: 5px solid #22c55e;
+}
+
+.status-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #eef2ff;
+  font-size: 25px;
+  font-weight: 900;
+}
+
+.timer {
+  min-width: 170px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.timer span {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.timer strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 24px;
+}
+
+/* Submit Confirmation */
+.confirmation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(5px);
+}
+
+.confirmation-card {
+  width: min(100%, 460px);
+  padding: 34px;
+  text-align: center;
+  background: #ffffff;
+  border-radius: 22px;
+  box-shadow: 0 30px 90px rgba(15, 23, 42, 0.25);
+}
+
+.confirmation-card h2 {
+  margin-bottom: 10px;
+  font-size: 28px;
+}
+
+.confirmation-card p {
+  margin-bottom: 26px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.confirmation-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.confirmation-actions button {
+  min-width: 130px;
+}
+
+@media (max-width: 560px) {
+  .confirmation-card {
+    padding: 28px 20px;
+  }
+
+  .confirmation-actions {
+    flex-direction: column-reverse;
+  }
+
+  .confirmation-actions button {
+    width: 100%;
+  }
+}
+

@@ -1,78 +1,71 @@
 import { useState } from "react";
 
-function CandidateForm ({ onStartExam }) {
+function CandidateForm({ onContinue }) {
   var [formData, setFormData] = useState({
     name: "",
     email: "",
-    dateOfBirth: ""
+    dateOfBirth: "",
   });
+
   var [errors, setErrors] = useState({});
 
-  function handleChange (event) {
-    var name = event.target.name;
-    var value = event.target.value;
+  function handleChange(event) {
+    var { name, value } = event.target;
 
-    setFormData(function (currentData) {
-      return {
-        ...currentData,
-        [name]: value
-      };
+    setFormData({
+      ...formData,
+      [name]: value,
     });
 
-    setErrors(function (currentErrors) {
-      return {
-        ...currentErrors,
-        [name]: ""
-      };
+    setErrors({
+      ...errors,
+      [name]: "",
     });
   }
 
-  function validateForm () {
-    var validationErrors = {};
+  function validateForm() {
+    var newErrors = {};
 
     if (formData.name.trim() === "") {
-      validationErrors.name = "Name is required.";
+      newErrors.name = "Name is required.";
     }
 
     if (formData.email.trim() === "") {
-      validationErrors.email = "Email ID is required.";
+      newErrors.email = "Email ID is required.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      validationErrors.email = "Enter a valid email ID.";
+      newErrors.email = "Enter a valid email ID.";
     }
 
     if (formData.dateOfBirth === "") {
-      validationErrors.dateOfBirth = "Date of Birth is required.";
+      newErrors.dateOfBirth = "Date of Birth is required.";
     }
 
-    return validationErrors;
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
   }
 
-  function handleSubmit (event) {
+  function handleSubmit(event) {
     event.preventDefault();
 
-    var validationErrors = validateForm();
-
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
+    if (validateForm()) {
+      onContinue(formData);
     }
-
-    onStartExam(formData);
   }
 
   return (
     <main className="candidate-page">
       <section className="candidate-card">
-        <div className="brand-mark">OT</div>
-        <p className="eyebrow">SECURE EXAMINATION</p>
-        <h1>Online Test</h1>
-        <p className="intro">
-          Enter your details before starting the examination.
-        </p>
+        <div className="candidate-header">
+          <p className="eyebrow">ONLINE TEST</p>
+          <h1>Candidate Registration</h1>
+          <p>Enter your details to continue to the test.</p>
+        </div>
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
-            <label htmlFor="name">Full Name</label>
+            <label htmlFor="name">Name</label>
+
             <input
               id="name"
               name="name"
@@ -81,24 +74,28 @@ function CandidateForm ({ onStartExam }) {
               onChange={handleChange}
               placeholder="Enter your full name"
             />
-            {errors.name && <p className="field-error">{errors.name}</p>}
+
+            {errors.name && <p className="error-message">{errors.name}</p>}
           </div>
 
           <div className="form-group">
             <label htmlFor="email">Email ID</label>
+
             <input
               id="email"
               name="email"
               type="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="name@example.com"
+              placeholder="Enter your email ID"
             />
-            {errors.email && <p className="field-error">{errors.email}</p>}
+
+            {errors.email && <p className="error-message">{errors.email}</p>}
           </div>
 
           <div className="form-group">
             <label htmlFor="dateOfBirth">Date of Birth</label>
+
             <input
               id="dateOfBirth"
               name="dateOfBirth"
@@ -106,23 +103,14 @@ function CandidateForm ({ onStartExam }) {
               value={formData.dateOfBirth}
               onChange={handleChange}
             />
+
             {errors.dateOfBirth && (
-              <p className="field-error">{errors.dateOfBirth}</p>
+              <p className="error-message">{errors.dateOfBirth}</p>
             )}
           </div>
 
-          <div className="exam-rules">
-            <p>Before you start</p>
-            <ul>
-              <li>One question is displayed per page.</li>
-              <li>Save your answer before moving to the next question.</li>
-              <li>Leaving full screen or changing tabs cancels the exam.</li>
-              <li>Five minutes of inactivity cancels the exam.</li>
-            </ul>
-          </div>
-
           <button className="primary-button" type="submit">
-            Start Test
+            Continue
           </button>
         </form>
       </section>
