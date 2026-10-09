@@ -22,15 +22,16 @@ function Exam({ candidate, onExit }) {
    * Enter fullscreen when the exam starts.
    */
   useEffect(function () {
-    function enterFullScreen() {
-      if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(function () {
-          setExamStatus("cancelled");
-        });
+    function handleFullscreenChange() {
+      if (!document.fullscreenElement) {
+        cancelExam("You exited full screen.");
       }
     }
 
-    enterFullScreen();
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return function () {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
   }, []);
 
   /*
@@ -214,10 +215,10 @@ function Exam({ candidate, onExit }) {
     onExit();
   }
 
-  function handleSubmit () {
-  setShowSubmitConfirmation(false);
-  setIsSubmitted(true);
-}
+  function handleSubmit() {
+    setShowSubmitConfirmation(false);
+    setExamStatus("submitted");
+  }
 
   /*
    * Exam cancellation page.
@@ -254,21 +255,33 @@ function Exam({ candidate, onExit }) {
    */
   if (examStatus === "submitted") {
     return (
-      <main className="status-page">
-        <section className="status-card success">
-          <div className="status-icon">✓</div>
+      <main className="thank-you-page">
+        <section className="thank-you-card">
+          <div className="thank-you-icon">✓</div>
 
-          <h1>Test Submitted</h1>
+          <p className="eyebrow">EXAM COMPLETED</p>
 
-          <p>Thank you, {candidate.name}.</p>
+          <h1>Thank You!</h1>
 
-          <p>Your test has been submitted successfully.</p>
+          <p className="thank-you-message">
+            Your exam has been submitted successfully.
+          </p>
 
-          <button
-            className="primary-button"
-            type="button"
-            onClick={handleExitExam}
-          >
+          <div className="thank-you-details">
+            <p>
+              <strong>Candidate:</strong> {candidate.name}
+            </p>
+
+            <p>
+              <strong>Email:</strong> {candidate.email}
+            </p>
+          </div>
+
+          <p className="thank-you-note">
+            Your responses have been recorded. You may now close this window.
+          </p>
+
+          <button className="primary-button" type="button" onClick={onExit}>
             Finish
           </button>
         </section>

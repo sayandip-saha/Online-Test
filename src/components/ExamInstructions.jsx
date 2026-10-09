@@ -1,6 +1,11 @@
 function ExamInstructions({ candidate, onStartExam }) {
-  function handleStartExam() {
-    onStartExam();
+  async function handleStartExam() {
+    try {
+      await document.documentElement.requestFullscreen();
+      onStartExam();
+    } catch (error) {
+      alert("Fullscreen mode is required to start the exam.");
+    }
   }
 
   return (

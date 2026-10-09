@@ -2,37 +2,52 @@ import { useState } from "react";
 import CandidateForm from "./components/CandidateForm";
 import ExamInstructions from "./components/ExamInstructions";
 import Exam from "./components/Exam";
+import Home from "./components/Home";
 
-function App() {
+function App () {
   var [candidate, setCandidate] = useState(null);
-  var [currentPage, setCurrentPage] = useState("registration");
+  var [currentPage, setCurrentPage] = useState("home");
 
-  function handleContinue(candidateData) {
+  function handleStartTest () {
+    setCurrentPage("registration");
+  }
+
+  function handleContinue (candidateData) {
     setCandidate(candidateData);
     setCurrentPage("instructions");
   }
 
-  function handleStartExam() {
+  function handleStartExam () {
     setCurrentPage("exam");
   }
 
-  function handleExitExam() {
+  function handleExitExam () {
     setCandidate(null);
-    setCurrentPage("registration");
+    setCurrentPage("home");
   }
 
   return (
     <div>
+      {currentPage === "home" && (
+        <Home onStartTest={handleStartTest} />
+      )}
+
       {currentPage === "registration" && (
         <CandidateForm onContinue={handleContinue} />
       )}
 
       {currentPage === "instructions" && (
-        <ExamInstructions candidate={candidate} onStartExam={handleStartExam} />
+        <ExamInstructions
+          candidate={candidate}
+          onStartExam={handleStartExam}
+        />
       )}
 
       {currentPage === "exam" && (
-        <Exam candidate={candidate} onExit={handleExitExam} />
+        <Exam
+          candidate={candidate}
+          onExit={handleExitExam}
+        />
       )}
     </div>
   );
