@@ -19,43 +19,51 @@ function Exam({ candidate, onExit }) {
   var currentQuestion = questions[currentIndex];
 
   /*
-   * Enter fullscreen when the exam starts.
-   */
-  useEffect(function () {
-    function handleFullscreenChange() {
-      if (!document.fullscreenElement) {
-        cancelExam("You exited full screen.");
-      }
-    }
-
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return function () {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
-  }, []);
-
-  /*
-   * Track fullscreen status.
+   * Monitor fullscreen status and cancel if fullscreen is exited.
    */
   useEffect(
     function () {
-      function handleFullScreenChange() {
+      function handleFullscreenChange() {
         var fullScreenActive = Boolean(document.fullscreenElement);
 
         setIsFullScreen(fullScreenActive);
 
         if (!fullScreenActive && examStatus === "running") {
           setExamStatus("cancelled");
+          sessionStorage.setItem("examStatus", "cancelled");
         }
       }
 
-      document.addEventListener("fullscreenchange", handleFullScreenChange);
+      document.addEventListener("fullscreenchange", handleFullscreenChange);
 
       return function () {
         document.removeEventListener(
           "fullscreenchange",
-          handleFullScreenChange,
+          handleFullscreenChange,
         );
+      };
+    },
+    [examStatus],
+  );
+
+  /*
+   * Detect window focus loss.
+   */
+  useEffect(
+    function () {
+      if (examStatus !== "running") {
+        return;
+      }
+
+      function handleWindowBlur() {
+        setExamStatus("cancelled");
+        sessionStorage.setItem("examStatus", "cancelled");
+      }
+
+      window.addEventListener("blur", handleWindowBlur);
+
+      return function () {
+        window.removeEventListener("blur", handleWindowBlur);
       };
     },
     [examStatus],
@@ -102,6 +110,24 @@ function Exam({ candidate, onExit }) {
       });
     },
     [currentIndex, examStatus],
+  );
+
+  /*
+   * Persist exam progress in the current browser tab.
+   */
+  useEffect(
+    function () {
+      sessionStorage.setItem(
+        "examProgress",
+        JSON.stringify({
+          currentIndex: currentIndex,
+          answers: answers,
+          visitedQuestions: visitedQuestions,
+          timeLeft: timeLeft,
+        }),
+      );
+    },
+    [currentIndex, answers, visitedQuestions, timeLeft],
   );
 
   /*
@@ -218,6 +244,8 @@ function Exam({ candidate, onExit }) {
   function handleSubmit() {
     setShowSubmitConfirmation(false);
     setExamStatus("submitted");
+    sessionStorage.setItem("examStatus", "submitted");
+    sessionStorage.removeItem("examProgress");
   }
 
   /*
