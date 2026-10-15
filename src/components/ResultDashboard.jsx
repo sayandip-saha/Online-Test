@@ -70,6 +70,11 @@ function ResultDashboard({ answers = [], candidate, onExit }) {
                   Verified JWT Session
                 </span>
 
+                <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                  <span>💾</span>
+                  <span>Saved to Database</span>
+                </span>
+
                 <button
                   type="button"
                   onClick={handleDownloadPdf}

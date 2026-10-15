@@ -1,6 +1,8 @@
 class Candidate < ApplicationRecord
   VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i
 
+  has_many :exam_submissions, dependent: :destroy
+
   before_validation :normalize_email
 
   validates :name, presence: true, length: { minimum: 2, maximum: 100 }

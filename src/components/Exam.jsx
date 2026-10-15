@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import questions from "../data/questions";
 import Palette from "./Palette";
 import ResultDashboard from "./ResultDashboard";
+import { recordExamSubmission } from "../services/auth";
 
 var INACTIVITY_LIMIT = 5 * 60;
 var INITIAL_TIME = INACTIVITY_LIMIT;
@@ -271,6 +272,41 @@ function Exam({ candidate, onExit }) {
         return;
       });
     }
+
+    // Save exam details permanently in the Rails backend database
+    var totalQuestions = questions.length;
+    var correctAnswers = 0;
+    var incorrectAnswers = 0;
+    var unansweredQuestions = 0;
+
+    questions.forEach(function (question, index) {
+      var selected = answers[index];
+      if (selected === undefined || selected === null) {
+        unansweredQuestions++;
+      } else if (selected === question.correctAnswer) {
+        correctAnswers++;
+      } else {
+        incorrectAnswers++;
+      }
+    });
+
+    var score = correctAnswers;
+    var percentage =
+      totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+    var isPassed = percentage >= 60;
+
+    recordExamSubmission({
+      score: score,
+      total_questions: totalQuestions,
+      percentage: percentage,
+      correct_answers: correctAnswers,
+      incorrect_answers: incorrectAnswers,
+      unanswered_questions: unansweredQuestions,
+      passed: isPassed,
+      answers_payload: answers,
+    }).catch(function (err) {
+      console.error("Failed to save exam submission to backend:", err);
+    });
   }
 
   if (examStatus === "cancelled") {

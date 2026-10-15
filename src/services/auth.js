@@ -87,3 +87,50 @@ export async function getCurrentCandidate() {
   return data.candidate;
 }
 
+export async function recordExamSubmission(submissionPayload) {
+  var token = getToken();
+  var headers = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  };
+
+  if (token) {
+    headers["Authorization"] = "Bearer " + token;
+  }
+
+  var response = await fetch("/api/exam_submissions", {
+    method: "POST",
+    headers: headers,
+    body: JSON.stringify(submissionPayload),
+  });
+
+  var data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || "Failed to record exam submission.");
+  }
+
+  return data;
+}
+
+export async function getPastSubmissions() {
+  var token = getToken();
+  if (!token) {
+    return [];
+  }
+
+  var response = await fetch("/api/exam_submissions", {
+    method: "GET",
+    headers: {
+      Authorization: "Bearer " + token,
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    return [];
+  }
+
+  var data = await response.json();
+  return data.submissions || [];
+}
+

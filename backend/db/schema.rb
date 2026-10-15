@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_15_042158) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_15_095639) do
   create_table "candidates", force: :cascade do |t|
     t.string "name", null: false
     t.string "email", null: false
@@ -19,4 +19,21 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_15_042158) do
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_candidates_on_email", unique: true
   end
+
+  create_table "exam_submissions", force: :cascade do |t|
+    t.integer "candidate_id", null: false
+    t.integer "score", default: 0, null: false
+    t.integer "total_questions", default: 0, null: false
+    t.integer "percentage", default: 0, null: false
+    t.integer "correct_answers", default: 0, null: false
+    t.integer "incorrect_answers", default: 0, null: false
+    t.integer "unanswered_questions", default: 0, null: false
+    t.boolean "passed", default: false, null: false
+    t.text "answers_payload"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["candidate_id"], name: "index_exam_submissions_on_candidate_id"
+  end
+
+  add_foreign_key "exam_submissions", "candidates"
 end

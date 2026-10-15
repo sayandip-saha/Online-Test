@@ -1,4 +1,42 @@
+import { useEffect, useState } from "react";
+import { getPastSubmissions } from "../services/auth";
+import { generateCertificatePdf } from "../utils/generateCertificatePdf";
+
 function Home({ candidate, onStartTest, onLogout }) {
+  var [pastSubmissions, setPastSubmissions] = useState([]);
+  var [loadingHistory, setLoadingHistory] = useState(false);
+
+  useEffect(function () {
+    if (!candidate) {
+      setPastSubmissions([]);
+      return;
+    }
+
+    setLoadingHistory(true);
+    getPastSubmissions()
+      .then(function (submissions) {
+        setPastSubmissions(submissions || []);
+      })
+      .catch(function (err) {
+        console.error("Failed to load past submissions:", err);
+      })
+      .finally(function () {
+        setLoadingHistory(false);
+      });
+  }, [candidate]);
+
+  function handleDownloadHistoryPdf(sub) {
+    try {
+      generateCertificatePdf({
+        candidate: candidate,
+        answers: sub.answers_payload || [],
+      });
+    } catch (e) {
+      console.error("Failed to download PDF for past submission:", e);
+      alert("Unable to generate PDF report card.");
+    }
+  }
+
   return (
     <main className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top_left,#e0e7ff,transparent_35%),radial-gradient(circle_at_bottom_right,#dbeafe,transparent_35%),#f8fafc] px-5 py-10">
       <section className="w-full max-w-4xl rounded-[28px] border border-slate-200 bg-white p-6 text-center shadow-[0_30px_90px_rgba(15,23,42,0.12)] sm:p-10 lg:p-15">
@@ -82,7 +120,80 @@ function Home({ candidate, onStartTest, onLogout }) {
           </button>
         </div>
 
-        <p className="mt-5 text-xs text-slate-400">
+        {/* Previous Attempts Section (from Rails Backend) */}
+        {candidate && (
+          <div className="mt-12 text-left border-t border-slate-100 pt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-slate-900">
+                Your Exam History (Saved in Database)
+              </h2>
+              <span className="text-xs text-slate-500">
+                {pastSubmissions.length} attempt{pastSubmissions.length === 1 ? "" : "s"}
+              </span>
+            </div>
+
+            {loadingHistory ? (
+              <p className="text-sm text-slate-500 py-4 text-center">Loading exam history...</p>
+            ) : pastSubmissions.length === 0 ? (
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-center text-sm text-slate-500">
+                You haven't submitted any exams yet. Start your first exam above!
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                <table className="w-full text-left text-sm text-slate-700">
+                  <thead className="bg-slate-50 text-xs font-bold uppercase text-slate-500 border-b border-slate-200">
+                    <tr>
+                      <th className="px-4 py-3">Submitted At</th>
+                      <th className="px-4 py-3">Score</th>
+                      <th className="px-4 py-3">Percentage</th>
+                      <th className="px-4 py-3">Result</th>
+                      <th className="px-4 py-3 text-right">Report Card</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {pastSubmissions.map(function (sub) {
+                      return (
+                        <tr key={sub.id} className="hover:bg-slate-50/60 transition">
+                          <td className="px-4 py-3 text-xs font-medium text-slate-600">
+                            {sub.submitted_at}
+                          </td>
+                          <td className="px-4 py-3 font-bold text-slate-900">
+                            {sub.score} / {sub.total_questions}
+                          </td>
+                          <td className="px-4 py-3 font-semibold text-slate-800">
+                            {sub.percentage}%
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                                sub.passed
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {sub.passed ? "PASSED" : "FAILED"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadHistoryPdf(sub)}
+                              className="text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline"
+                            >
+                              📥 Download PDF
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        <p className="mt-8 text-xs text-slate-400">
           Make sure you are ready before starting the examination.
         </p>
       </section>
