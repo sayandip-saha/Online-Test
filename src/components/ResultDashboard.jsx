@@ -1,6 +1,9 @@
+import { useState } from "react";
 import questions from "../data/questions";
+import { generateCertificatePdf } from "../utils/generateCertificatePdf";
 
 function ResultDashboard({ answers = [], candidate, onExit }) {
+  var [isDownloading, setIsDownloading] = useState(false);
   var totalQuestions = questions.length;
   var correctAnswers = 0;
   var incorrectAnswers = 0;
@@ -29,6 +32,20 @@ function ResultDashboard({ answers = [], candidate, onExit }) {
 
   var isPassed = percentage >= passingPercentage;
 
+  function handleDownloadPdf() {
+    setIsDownloading(true);
+    setTimeout(function () {
+      try {
+        generateCertificatePdf({ candidate: candidate, answers: answers });
+      } catch (error) {
+        console.error("PDF generation failed:", error);
+        alert("Failed to generate PDF. Please try again.");
+      } finally {
+        setIsDownloading(false);
+      }
+    }, 150);
+  }
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#e0e7ff,transparent_35%),radial-gradient(circle_at_bottom_right,#dbeafe,transparent_35%),#f8fafc] px-4 py-10 text-slate-800">
       <div className="mx-auto max-w-4xl">
@@ -47,11 +64,22 @@ function ResultDashboard({ answers = [], candidate, onExit }) {
                 <p className="text-xs text-slate-500">{candidate.email}</p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                   <span className="size-2 rounded-full bg-emerald-500"></span>
                   Verified JWT Session
                 </span>
+
+                <button
+                  type="button"
+                  onClick={handleDownloadPdf}
+                  disabled={isDownloading}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-3.5 py-1 text-xs font-extrabold text-indigo-700 transition hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:opacity-50"
+                  title="Download Report Card as PDF"
+                >
+                  <span>📥</span>
+                  <span>{isDownloading ? "Generating..." : "Download Report Card (PDF)"}</span>
+                </button>
               </div>
             </div>
           )}
@@ -256,7 +284,21 @@ function ResultDashboard({ answers = [], candidate, onExit }) {
           </div>
 
           {/* Action Buttons */}
-          <div className="mt-8 flex justify-end">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-slate-100 pt-6">
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={isDownloading}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-indigo-600 bg-indigo-50 px-6 py-3.5 font-extrabold text-indigo-700 transition hover:bg-indigo-100 focus:outline-none focus:ring-4 focus:ring-indigo-100 disabled:opacity-50"
+            >
+              <span>📥</span>
+              <span>
+                {isDownloading
+                  ? "Generating Document..."
+                  : "Download Report Card (PDF)"}
+              </span>
+            </button>
+
             {onExit && (
               <button
                 type="button"
