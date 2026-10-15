@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "server": "bash -c \"cd backend && bundle exec rails server -p 3000\"",
     "build": "vite build",
     "preview": "vite preview"
   },

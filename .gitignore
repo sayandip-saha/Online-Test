@@ -7,3 +7,10 @@ dist/
 .DS_Store
 .vscode/
 .idea/
+backend/vendor/
+backend/db/*.sqlite3
+backend/db/*.sqlite3-journal
+backend/log/*
+!backend/log/.keep
+backend/tmp/*
+!backend/tmp/.keep
