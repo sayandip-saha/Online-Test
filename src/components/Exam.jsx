@@ -12,6 +12,9 @@ function Exam({ candidate, onExit }) {
   var [visitedQuestions, setVisitedQuestions] = useState(
     Array(questions.length).fill(false),
   );
+  var [flaggedQuestions, setFlaggedQuestions] = useState(
+    Array(questions.length).fill(false),
+  );
   var [examStatus, setExamStatus] = useState("running");
   var [timeLeft, setTimeLeft] = useState(INITIAL_TIME);
   var [isFullScreen, setIsFullScreen] = useState(
@@ -109,11 +112,12 @@ function Exam({ candidate, onExit }) {
           currentIndex: currentIndex,
           answers: answers,
           visitedQuestions: visitedQuestions,
+          flaggedQuestions: flaggedQuestions,
           timeLeft: timeLeft,
         }),
       );
     },
-    [currentIndex, answers, visitedQuestions, timeLeft],
+    [currentIndex, answers, visitedQuestions, flaggedQuestions, timeLeft],
   );
 
   useEffect(
@@ -184,6 +188,44 @@ function Exam({ candidate, onExit }) {
     setAnswers(function (previous) {
       var updated = [...previous];
       updated[currentIndex] = optionIndex;
+      return updated;
+    });
+  }
+
+  function handleToggleFlag() {
+    if (examStatus !== "running") {
+      return;
+    }
+
+    setFlaggedQuestions(function (previous) {
+      var updated = [...previous];
+      updated[currentIndex] = !updated[currentIndex];
+      return updated;
+    });
+  }
+
+  function handleMarkForReviewAndNext() {
+    if (examStatus !== "running") {
+      return;
+    }
+
+    setFlaggedQuestions(function (previous) {
+      var updated = [...previous];
+      updated[currentIndex] = true;
+      return updated;
+    });
+
+    handleNext();
+  }
+
+  function handleClearResponse() {
+    if (examStatus !== "running") {
+      return;
+    }
+
+    setAnswers(function (previous) {
+      var updated = [...previous];
+      updated[currentIndex] = null;
       return updated;
     });
   }
@@ -266,22 +308,11 @@ function Exam({ candidate, onExit }) {
     );
   }
 
-  function handleRestart() {
-    setAnswers(Array(questions.length).fill(null));
-    setVisitedQuestions(Array(questions.length).fill(false));
-    setCurrentIndex(0);
-    setTimeLeft(INITIAL_TIME);
-    setExamStatus("running");
-    sessionStorage.removeItem("examStatus");
-    sessionStorage.removeItem("examProgress");
-  }
-
   if (examStatus === "submitted") {
     return (
       <ResultDashboard
         answers={answers}
         candidate={candidate}
-        onRestart={handleRestart}
         onExit={handleExitExam}
       />
     );
@@ -331,9 +362,42 @@ function Exam({ candidate, onExit }) {
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_260px]">
         <section className="flex min-h-130 flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)] sm:p-8">
-          <div className="flex items-center justify-between gap-3 text-sm font-bold text-slate-500">
-            <span>Question {currentIndex + 1}</span>
-            <span>{currentQuestion.options.length} Options</span>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-slate-500">
+                Question {currentIndex + 1} of {questions.length}
+              </span>
+              {flaggedQuestions[currentIndex] && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-yellow-300 bg-yellow-100 px-2.5 py-0.5 text-xs font-bold text-yellow-900">
+                  <span>⚑</span>
+                  <span>Marked for Review</span>
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleToggleFlag}
+                className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-yellow-300 ${
+                  flaggedQuestions[currentIndex]
+                    ? "border-yellow-400 bg-yellow-100 text-yellow-900 hover:bg-yellow-200"
+                    : "border-slate-200 bg-white text-slate-600 hover:border-yellow-400 hover:text-yellow-700"
+                }`}
+                title="Mark this question to review later"
+              >
+                <span className="text-sm">⚑</span>
+                <span>
+                  {flaggedQuestions[currentIndex]
+                    ? "Unmark Review"
+                    : "Mark for Review"}
+                </span>
+              </button>
+
+              <span className="text-xs text-slate-400">
+                {currentQuestion.options.length} Options
+              </span>
+            </div>
           </div>
 
           <h2 className="my-9 text-xl leading-relaxed font-bold text-slate-900 sm:my-12 sm:text-2xl">
@@ -381,35 +445,60 @@ function Exam({ candidate, onExit }) {
             })}
           </div>
 
-          <div className="mt-auto flex flex-col-reverse justify-between gap-3 pt-8 sm:flex-row">
-            <button
-              className="rounded-xl bg-slate-200 px-5 py-3 font-extrabold text-slate-700 transition hover:bg-slate-300 disabled:cursor-not-allowed disabled:opacity-40"
-              type="button"
-              onClick={handlePrevious}
-              disabled={currentIndex === 0}
-            >
-              Previous
-            </button>
+          <div className="mt-auto flex flex-col gap-3 pt-8 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <button
+                className="rounded-xl bg-slate-200 px-5 py-3 font-extrabold text-slate-700 transition hover:bg-slate-300 disabled:cursor-not-allowed disabled:opacity-40"
+                type="button"
+                onClick={handlePrevious}
+                disabled={currentIndex === 0}
+              >
+                Previous
+              </button>
 
-            {currentIndex === questions.length - 1 ? (
+              {answers[currentIndex] !== null &&
+                answers[currentIndex] !== undefined && (
+                  <button
+                    type="button"
+                    onClick={handleClearResponse}
+                    className="rounded-xl border border-slate-200 px-3.5 py-3 text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                    title="Clear selected option for this question"
+                  >
+                    Clear Selection
+                  </button>
+                )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
               <button
-                className="rounded-xl bg-indigo-600 px-5 py-3 font-extrabold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200"
                 type="button"
-                onClick={function () {
-                  setShowSubmitConfirmation(true);
-                }}
+                onClick={handleMarkForReviewAndNext}
+                className="rounded-xl border border-yellow-300 bg-yellow-50 px-4 py-3 font-extrabold text-yellow-900 hover:bg-yellow-100 transition focus:outline-none focus:ring-4 focus:ring-yellow-200"
+                title="Mark for review and move to next question"
               >
-                Submit Exam
+                Mark for Review &amp; Next
               </button>
-            ) : (
-              <button
-                className="rounded-xl bg-indigo-600 px-5 py-3 font-extrabold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200"
-                type="button"
-                onClick={handleNext}
-              >
-                Save &amp; Next
-              </button>
-            )}
+
+              {currentIndex === questions.length - 1 ? (
+                <button
+                  className="rounded-xl bg-indigo-600 px-5 py-3 font-extrabold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200"
+                  type="button"
+                  onClick={function () {
+                    setShowSubmitConfirmation(true);
+                  }}
+                >
+                  Submit Exam
+                </button>
+              ) : (
+                <button
+                  className="rounded-xl bg-indigo-600 px-5 py-3 font-extrabold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200"
+                  type="button"
+                  onClick={handleNext}
+                >
+                  Save &amp; Next
+                </button>
+              )}
+            </div>
           </div>
         </section>
 
@@ -418,6 +507,7 @@ function Exam({ candidate, onExit }) {
           currentIndex={currentIndex}
           answers={answers}
           visitedQuestions={visitedQuestions}
+          flaggedQuestions={flaggedQuestions}
           onSelectQuestion={handlePaletteSelect}
         />
       </div>
@@ -441,10 +531,36 @@ function Exam({ candidate, onExit }) {
               Submit Exam?
             </h2>
 
-            <p className="mb-7 leading-7 text-slate-500">
-              Are you sure you want to submit the exam? You cannot change your
-              answers after submission.
+            <p className="mb-4 text-sm leading-6 text-slate-500">
+              Are you sure you want to submit the exam? You will not be able to change your answers after submission.
             </p>
+
+            <div className="mb-4 grid grid-cols-3 gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-3 text-center">
+              <div className="p-1">
+                <span className="block text-[11px] font-bold uppercase text-slate-400">Answered</span>
+                <span className="text-lg font-black text-emerald-600">
+                  {answers.filter((a) => a !== null && a !== undefined).length}
+                </span>
+              </div>
+              <div className="p-1">
+                <span className="block text-[11px] font-bold uppercase text-slate-400">Unanswered</span>
+                <span className="text-lg font-black text-rose-500">
+                  {answers.filter((a) => a === null || a === undefined).length}
+                </span>
+              </div>
+              <div className="p-1">
+                <span className="block text-[11px] font-bold uppercase text-slate-400">Marked ⚑</span>
+                <span className="text-lg font-black text-amber-600">
+                  {flaggedQuestions.filter(Boolean).length}
+                </span>
+              </div>
+            </div>
+
+            {flaggedQuestions.filter(Boolean).length > 0 && (
+              <p className="mb-5 rounded-xl border border-yellow-300 bg-yellow-50 p-2.5 text-xs text-yellow-900">
+                Notice: You have {flaggedQuestions.filter(Boolean).length} question(s) marked for review. They will be submitted with your currently selected answers.
+              </p>
+            )}
 
             <div className="flex flex-col-reverse justify-center gap-3 sm:flex-row">
               <button

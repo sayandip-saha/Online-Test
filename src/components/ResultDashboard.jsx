@@ -1,6 +1,6 @@
 import questions from "../data/questions";
 
-function ResultDashboard({ answers = [], candidate, onRestart, onExit }) {
+function ResultDashboard({ answers = [], candidate, onExit }) {
   var totalQuestions = questions.length;
   var correctAnswers = 0;
   var incorrectAnswers = 0;
@@ -256,17 +256,7 @@ function ResultDashboard({ answers = [], candidate, onRestart, onExit }) {
           </div>
 
           {/* Action Buttons */}
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
-            {onRestart && (
-              <button
-                type="button"
-                onClick={onRestart}
-                className="rounded-xl border border-indigo-200 bg-indigo-50 px-6 py-3.5 font-extrabold text-indigo-700 transition hover:bg-indigo-100 focus:outline-none focus:ring-4 focus:ring-indigo-100"
-              >
-                Take Exam Again
-              </button>
-            )}
-
+          <div className="mt-8 flex justify-end">
             {onExit && (
               <button
                 type="button"
