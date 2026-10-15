@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import questions from "../data/questions";
 import Palette from "./Palette";
+import ResultDashboard from "./ResultDashboard";
 
 var INACTIVITY_LIMIT = 5 * 60;
 var INITIAL_TIME = INACTIVITY_LIMIT;
@@ -265,51 +266,24 @@ function Exam({ candidate, onExit }) {
     );
   }
 
+  function handleRestart() {
+    setAnswers(Array(questions.length).fill(null));
+    setVisitedQuestions(Array(questions.length).fill(false));
+    setCurrentIndex(0);
+    setTimeLeft(INITIAL_TIME);
+    setExamStatus("running");
+    sessionStorage.removeItem("examStatus");
+    sessionStorage.removeItem("examProgress");
+  }
+
   if (examStatus === "submitted") {
     return (
-      <main className="grid min-h-screen place-items-center bg-[linear-gradient(135deg,#eef2ff,#f8fafc_55%,#e0f2fe)] px-5 py-8">
-        <section className="w-full max-w-xl rounded-3xl border border-slate-200 bg-white p-7 text-center shadow-[0_24px_70px_rgba(15,23,42,0.12)] sm:p-10">
-          <div className="mx-auto mb-5 grid size-16 place-items-center rounded-full bg-green-100 text-3xl font-black text-green-600">
-            ✓
-          </div>
-
-          <p className="mb-2 text-xs font-extrabold tracking-[0.14em] text-indigo-600">
-            EXAM COMPLETED
-          </p>
-
-          <h1 className="mb-3 text-4xl font-extrabold text-slate-900">
-            Thank You!
-          </h1>
-
-          <p className="mb-6 leading-7 text-slate-500">
-            Your exam has been submitted successfully.
-          </p>
-
-          <div className="my-6 rounded-xl border border-slate-200 bg-slate-50 p-5 text-left">
-            <p className="mb-2 text-slate-600">
-              <strong className="text-slate-900">Candidate:</strong>{" "}
-              {candidate.name}
-            </p>
-
-            <p className="text-slate-600">
-              <strong className="text-slate-900">Email:</strong>{" "}
-              {candidate.email}
-            </p>
-          </div>
-
-          <p className="mb-7 text-sm leading-6 text-slate-500">
-            Your responses have been recorded. You may now close this window.
-          </p>
-
-          <button
-            className="rounded-xl bg-indigo-600 px-6 py-3 font-extrabold text-white transition hover:bg-indigo-700"
-            type="button"
-            onClick={onExit}
-          >
-            Finish
-          </button>
-        </section>
-      </main>
+      <ResultDashboard
+        answers={answers}
+        candidate={candidate}
+        onRestart={handleRestart}
+        onExit={handleExitExam}
+      />
     );
   }
 
@@ -330,16 +304,28 @@ function Exam({ candidate, onExit }) {
           </p>
         </div>
 
-        <div className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-3 text-center sm:w-44">
-          <span className="block text-xs text-slate-500">Inactivity Time</span>
+        <div className="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
+          <div className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-3 text-center sm:w-44">
+            <span className="block text-xs text-slate-500">Inactivity Time</span>
 
-          <strong
-            className={`mt-1 block font-mono text-2xl font-extrabold ${
-              timeLeft <= 60 ? "text-red-600" : "text-slate-900"
-            }`}
+            <strong
+              className={`mt-1 block font-mono text-2xl font-extrabold ${
+                timeLeft <= 60 ? "text-red-600" : "text-slate-900"
+              }`}
+            >
+              {formatTime(timeLeft)}
+            </strong>
+          </div>
+
+          <button
+            type="button"
+            onClick={function () {
+              setShowSubmitConfirmation(true);
+            }}
+            className="rounded-2xl border border-indigo-200 bg-indigo-50 px-5 py-3.5 text-sm font-extrabold text-indigo-700 transition hover:bg-indigo-100 focus:outline-none focus:ring-4 focus:ring-indigo-100"
           >
-            {formatTime(timeLeft)}
-          </strong>
+            Submit Exam
+          </button>
         </div>
       </header>
 
