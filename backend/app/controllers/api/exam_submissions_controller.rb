@@ -4,6 +4,13 @@ module Api
 
     # POST /api/exam_submissions
     def create
+      if current_candidate.exam_submissions.exists?
+        render json: {
+          error: "You have already completed your exam attempt. Only 1 attempt is permitted per candidate."
+        }, status: :forbidden
+        return
+      end
+
       answers_data = params[:answers_payload] || params[:answers]
       raw_answers = answers_data.is_a?(String) ? answers_data : answers_data.to_json
 

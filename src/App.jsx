@@ -30,6 +30,10 @@ function App() {
 
   function handleStartTest() {
     if (candidate) {
+      if (candidate.has_attempted) {
+        alert("You have already used your 1 permitted exam attempt.");
+        return;
+      }
       setCurrentPage("instructions");
     } else {
       setCurrentPage("registration");
@@ -38,14 +42,32 @@ function App() {
 
   function handleContinue(candidateData) {
     setCandidate(candidateData);
-    setCurrentPage("instructions");
+    if (candidateData && candidateData.has_attempted) {
+      setCurrentPage("home");
+    } else {
+      setCurrentPage("instructions");
+    }
   }
 
   function handleStartExam() {
+    if (candidate && candidate.has_attempted) {
+      alert("You have already used your 1 permitted exam attempt.");
+      setCurrentPage("home");
+      return;
+    }
     setCurrentPage("exam");
   }
 
+  function handleExamSubmitted() {
+    setCandidate(function (prev) {
+      return prev ? { ...prev, has_attempted: true, attempts_count: (prev.attempts_count || 0) + 1 } : prev;
+    });
+  }
+
   function handleExitExam() {
+    setCandidate(function (prev) {
+      return prev ? { ...prev, has_attempted: true, attempts_count: Math.max(1, prev.attempts_count || 1) } : prev;
+    });
     setCurrentPage("home");
   }
 
@@ -85,10 +107,15 @@ function App() {
         <ExamInstructions
           candidate={candidate || { name: "Candidate" }}
           onStartExam={handleStartExam}
+          onBack={() => setCurrentPage("home")}
         />
       )}
       {currentPage === "exam" && (
-        <Exam candidate={candidate} onExit={handleExitExam} />
+        <Exam
+          candidate={candidate}
+          onExit={handleExitExam}
+          onExamSubmitted={handleExamSubmitted}
+        />
       )}
     </div>
   );

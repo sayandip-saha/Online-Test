@@ -7,7 +7,7 @@ import { recordExamSubmission } from "../services/auth";
 var INACTIVITY_LIMIT = 5 * 60;
 var INITIAL_TIME = INACTIVITY_LIMIT;
 
-function Exam({ candidate, onExit }) {
+function Exam({ candidate, onExit, onExamSubmitted }) {
   var [currentIndex, setCurrentIndex] = useState(0);
   var [answers, setAnswers] = useState(Array(questions.length).fill(null));
   var [visitedQuestions, setVisitedQuestions] = useState(
@@ -294,6 +294,10 @@ function Exam({ candidate, onExit }) {
     var percentage =
       totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
     var isPassed = percentage >= 60;
+
+    if (onExamSubmitted) {
+      onExamSubmitted();
+    }
 
     recordExamSubmission({
       score: score,

@@ -37,6 +37,10 @@ function Home({ candidate, onStartTest, onLogout }) {
     }
   }
 
+  var hasAttempted = Boolean(
+    candidate?.has_attempted || pastSubmissions.length > 0
+  );
+
   return (
     <main className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top_left,#e0e7ff,transparent_35%),radial-gradient(circle_at_bottom_right,#dbeafe,transparent_35%),#f8fafc] px-5 py-10">
       <section className="w-full max-w-4xl rounded-[28px] border border-slate-200 bg-white p-6 text-center shadow-[0_30px_90px_rgba(15,23,42,0.12)] sm:p-10 lg:p-15">
@@ -46,10 +50,19 @@ function Home({ candidate, onStartTest, onLogout }) {
           </div>
 
           {candidate && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
                 <span className="size-2 rounded-full bg-emerald-500"></span>
                 JWT Authenticated: {candidate.name}
+              </span>
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold border ${
+                  hasAttempted
+                    ? "bg-amber-50 text-amber-800 border-amber-200"
+                    : "bg-blue-50 text-blue-700 border-blue-200"
+                }`}
+              >
+                Attempt: {hasAttempted ? "1 / 1 (Limit Reached)" : "0 / 1"}
               </span>
               {onLogout && (
                 <button
@@ -91,10 +104,10 @@ function Home({ candidate, onStartTest, onLogout }) {
               ⏱
             </div>
             <strong className="mb-2 block text-sm font-bold text-slate-900">
-              Secure Examination
+              Strict 1-Attempt Limit
             </strong>
             <p className="text-sm leading-6 text-slate-500">
-              Protected session with JWT authentication.
+              Each registered candidate is granted exactly 1 attempt.
             </p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-left">
@@ -110,14 +123,47 @@ function Home({ candidate, onStartTest, onLogout }) {
           </div>
         </div>
 
+        {candidate && hasAttempted && (
+          <div className="mx-auto my-6 max-w-2xl rounded-2xl border border-amber-300 bg-amber-50/90 p-5 text-left shadow-xs">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl leading-none">⚠️</span>
+              <div>
+                <h3 className="text-sm font-bold text-amber-900">
+                  Exam Completed &bull; Single Attempt Limit Reached
+                </h3>
+                <p className="mt-1 text-xs leading-relaxed text-amber-800">
+                  Candidates are permitted to attempt this examination <strong>only once</strong>.
+                  Your examination has already been completed and securely saved in the database.
+                  Further attempts are not allowed. You can review your score and download your PDF report card below.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center justify-center gap-4">
-          <button
-            className="min-w-48 rounded-xl bg-indigo-600 px-7 py-4 text-base font-extrabold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200"
-            type="button"
-            onClick={onStartTest}
-          >
-            {candidate ? "Continue to Exam Instructions" : "Sign In / Register to Start"}
-          </button>
+          {hasAttempted ? (
+            <div className="flex flex-col items-center gap-2">
+              <button
+                className="min-w-64 rounded-xl bg-slate-200 px-7 py-4 text-base font-extrabold text-slate-400 cursor-not-allowed border border-slate-300"
+                type="button"
+                disabled
+              >
+                🔒 Exam Completed (1 of 1 Attempt Used)
+              </button>
+              <span className="text-xs text-slate-500">
+                Only 1 attempt is allowed per candidate.
+              </span>
+            </div>
+          ) : (
+            <button
+              className="min-w-48 rounded-xl bg-indigo-600 px-7 py-4 text-base font-extrabold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200"
+              type="button"
+              onClick={onStartTest}
+            >
+              {candidate ? "Continue to Exam Instructions" : "Sign In / Register to Start"}
+            </button>
+          )}
         </div>
 
         {/* Previous Attempts Section (from Rails Backend) */}

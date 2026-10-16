@@ -81,7 +81,9 @@ module Api
         id: candidate.id,
         name: candidate.name,
         email: candidate.email,
-        dateOfBirth: candidate.date_of_birth.strftime("%Y-%m-%d")
+        dateOfBirth: candidate.date_of_birth.strftime("%Y-%m-%d"),
+        has_attempted: candidate.exam_submissions.exists?,
+        attempts_count: candidate.exam_submissions.count
       }
     end
   end
