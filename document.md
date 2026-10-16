@@ -180,29 +180,63 @@ Upon submission, the **Result Dashboard** opens immediately:
 
 ---
 
-## 3. Administrator Operations & Troubleshooting
+## 3. Administrator & Proctor Operations Guide
 
-### 3.1 Inspecting Stored Candidate Submissions
-To inspect the backend database in real time:
+The portal includes a dedicated, secure **Admin Console** accessible directly from the application header and footer.
+
+### 3.1 Accessing the Admin Console
+1. On the **Home Page**, click the **`⚙️ Admin Portal`** button in the top bar or **`⚙️ Administrator Console`** in the footer.
+2. Enter the administrator passcode:
+   - **Default Passcode**: `admin123` (configured via `ADMIN_PASSCODE` in backend).
+3. Click **`Unlock Admin Dashboard`**.
+
+### 3.2 Platform Analytics & KPIs
+Upon login, the dashboard displays 4 live metrics:
+- **Registered Candidates**: Total candidate profiles registered in the database.
+- **Exam Submissions**: Number of completed test attempts recorded.
+- **Passing Rate**: Percentage of candidates who achieved a score of 60% or above, with a breakdown of Passed vs Failed counts.
+- **Average Score & Accuracy**: Average score out of 15 and mean accuracy percentage.
+
+### 3.3 Managing Exam Submissions
+Under the **`Exam Submissions`** tab:
+- **Search & Filter**: Search candidates by name/email, and filter results by **All**, **Passed**, or **Failed**.
+- **Inspect Detailed Answers (`View Answers`)**: Opens a modal showing the candidate's exact answer selection for every single question compared against the correct answer.
+- **Download Official PDF Report Card (`📥 PDF`)**: Generates and downloads the candidate's vector report card on-demand.
+- **Reset Attempt (`Reset`)**: Deletes the submission, allowing that specific candidate to retake their exam without wiping their registration profile.
+- **Export to CSV (`📥 Export CSV`)**: Downloads a comprehensive spreadsheet with candidate names, emails, scores, breakdown, percentage, pass/fail status, and submission timestamps.
+
+### 3.4 Managing Candidates
+Under the **`Registered Candidates`** tab:
+- View all candidates, their emails, dates of birth, and registration timestamps.
+- **Attempt Status**: Check whether a candidate is **Eligible (0/1)** or **Completed (1/1)**.
+- **Reset Attempt**: Clear a candidate's attempt so they can take the test again.
+- **Delete Candidate**: Permanently remove a candidate and all their submissions.
+
+### 3.5 Question Bank Inspection
+Under the **`Question Bank`** tab:
+- Review all 15 questions currently loaded in the exam paper.
+- Verify option choices, correct answer indices, and educational explanations.
+
+### 3.6 Resetting Platform / Emergency Wipe
+- Click **`⚠️ Reset Platform`** in the admin toolbar to wipe all candidate accounts and exam submissions in one click with confirmation.
+
+---
+
+## 4. Technical Troubleshooting & Terminal FAQ
+
+### 4.1 Inspecting Stored Records via Rails CLI
 ```bash
 cd backend
 bin/rails runner "Candidate.all.each { |c| puts \"Candidate: #{c.name} (#{c.email}) - Attempts: #{c.exam_submissions.count}\" }"
 ```
 
-### 3.2 Resetting Database / Deleting Test Attempts
-To clear all candidates and reset all exam attempts for a fresh test run:
-```bash
-cd backend
-bin/rails runner "ExamSubmission.destroy_all; Candidate.destroy_all; ActiveRecord::Base.connection.execute(\"DELETE FROM sqlite_sequence WHERE name IN ('candidates', 'exam_submissions');\"); puts 'Database cleared successfully!';"
-```
-
-### 3.3 Resolving Stale Server PID
+### 4.2 Resolving Stale Server PID
 If Puma/Rails fails to start with `"A server is already running"`:
 ```bash
 rm -f backend/tmp/pids/server.pid
 ```
 
-### 3.4 In-Progress Session Recovery
+### 4.3 In-Progress Session Recovery
 If a candidate accidentally refreshes their browser tab during an active test:
 - The system automatically restores the session from `sessionStorage("examProgress")`.
 - All previously answered, visited, and flagged questions are restored seamlessly without losing candidate progress.

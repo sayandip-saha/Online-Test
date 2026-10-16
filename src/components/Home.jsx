@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getPastSubmissions } from "../services/auth";
 import { generateCertificatePdf } from "../utils/generateCertificatePdf";
 
-function Home({ candidate, onStartTest, onLogout }) {
+function Home({ candidate, onStartTest, onLogout, onOpenAdmin }) {
   var [pastSubmissions, setPastSubmissions] = useState([]);
   var [loadingHistory, setLoadingHistory] = useState(false);
 
@@ -45,8 +45,21 @@ function Home({ candidate, onStartTest, onLogout }) {
     <main className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top_left,#e0e7ff,transparent_35%),radial-gradient(circle_at_bottom_right,#dbeafe,transparent_35%),#f8fafc] px-5 py-10">
       <section className="w-full max-w-4xl rounded-[28px] border border-slate-200 bg-white p-6 text-center shadow-[0_30px_90px_rgba(15,23,42,0.12)] sm:p-10 lg:p-15">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <div className="inline-block rounded-full bg-indigo-50 px-4 py-2 text-xs font-extrabold tracking-[0.12em] text-indigo-600">
-            ONLINE TEST PLATFORM
+          <div className="flex items-center gap-2">
+            <div className="inline-block rounded-full bg-indigo-50 px-4 py-2 text-xs font-extrabold tracking-[0.12em] text-indigo-600">
+              ONLINE TEST PLATFORM
+            </div>
+            {onOpenAdmin && (
+              <button
+                type="button"
+                onClick={onOpenAdmin}
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-300 transition shadow-2xs"
+                title="Open Administrator Console"
+              >
+                <span>⚙️</span>
+                <span>Admin Portal</span>
+              </button>
+            )}
           </div>
 
           {candidate && (
@@ -239,9 +252,18 @@ function Home({ candidate, onStartTest, onLogout }) {
           </div>
         )}
 
-        <p className="mt-8 text-xs text-slate-400">
-          Make sure you are ready before starting the examination.
-        </p>
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-5 text-xs text-slate-400">
+          <span>Make sure you are ready before starting the examination.</span>
+          {onOpenAdmin && (
+            <button
+              type="button"
+              onClick={onOpenAdmin}
+              className="font-bold text-slate-500 hover:text-indigo-600 transition flex items-center gap-1 cursor-pointer"
+            >
+              ⚙️ Administrator Console
+            </button>
+          )}
+        </div>
       </section>
     </main>
   );

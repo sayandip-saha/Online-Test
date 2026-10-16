@@ -3,6 +3,7 @@ import CandidateForm from "./components/CandidateForm";
 import ExamInstructions from "./components/ExamInstructions";
 import Exam from "./components/Exam";
 import Home from "./components/Home";
+import Admin from "./components/Admin";
 import { getCurrentCandidate, removeToken } from "./services/auth";
 
 function App() {
@@ -77,6 +78,16 @@ function App() {
     setCurrentPage("home");
   }
 
+  async function handleBackFromAdmin() {
+    try {
+      var current = await getCurrentCandidate();
+      setCandidate(current);
+    } catch (e) {
+      console.error("Failed to refresh candidate session after admin:", e);
+    }
+    setCurrentPage("home");
+  }
+
   if (isInitializing) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
@@ -95,6 +106,7 @@ function App() {
           candidate={candidate}
           onStartTest={handleStartTest}
           onLogout={handleLogout}
+          onOpenAdmin={() => setCurrentPage("admin")}
         />
       )}
       {currentPage === "registration" && (
@@ -116,6 +128,9 @@ function App() {
           onExit={handleExitExam}
           onExamSubmitted={handleExamSubmitted}
         />
+      )}
+      {currentPage === "admin" && (
+        <Admin onBackToHome={handleBackFromAdmin} />
       )}
     </div>
   );

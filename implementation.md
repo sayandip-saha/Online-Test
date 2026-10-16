@@ -360,3 +360,27 @@ The certificate is generated client-side using **jsPDF** vector drawing API rath
    - `FAILED`: Crimson red vector pill (`#dc2626`).
 7. **Security Watermark & Verification**: Includes ISO formatted timestamp, digital verification signature disclaimer, and single-page constraint logic.
 
+---
+
+## 4. Admin Portal Implementation
+
+### 4.1 Backend API Controller ([`Api::AdminController`](file:///home/sayandip/Desktop/online-test-react/backend/app/controllers/api/admin_controller.rb))
+Protected with passcode-based authentication (`X-Admin-Passcode` header):
+- `GET /api/admin/stats`: Aggregates platform KPIs (total candidates, submissions, passed/failed counts, average score, passing rate).
+- `GET /api/admin/submissions`: Lists all submissions joined with candidate profile data.
+- `GET /api/admin/candidates`: Lists candidate profiles, registration timestamps, and attempt status.
+- `POST /api/admin/reset_attempt/:candidate_id`: Removes submissions for a candidate, re-enabling them to take the exam under the 1-attempt policy.
+- `DELETE /api/admin/submissions/:id`: Removes an individual submission.
+- `DELETE /api/admin/candidates/:id`: Removes candidate and cascades associated submission records.
+- `POST /api/admin/clear_all`: Wipes candidates, exam submissions, and resets SQLite sequence counters.
+
+### 4.2 Frontend Client Layer ([`src/services/admin.js`](file:///home/sayandip/Desktop/online-test-react/src/services/admin.js))
+Provides asynchronous fetch wrappers managing the `X-Admin-Passcode` header and `sessionStorage` token caching.
+
+### 4.3 Admin User Interface ([`src/components/Admin.jsx`](file:///home/sayandip/Desktop/online-test-react/src/components/Admin.jsx))
+- **Authentication Gate**: Passcode login modal with error messaging.
+- **KPI Metrics Grid**: Real-time counter cards.
+- **Submissions Management Tab**: Real-time search by name/email, result filters (Passed/Failed), CSV export, individual submission inspection modal, vector PDF generation, and attempt resets.
+- **Candidates Tab**: Candidate roster with attempt status badges and deletion controls.
+- **Question Bank Tab**: Live inspection of test questions, option keys, and answer explanations.
+
